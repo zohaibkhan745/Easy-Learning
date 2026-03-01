@@ -1,0 +1,14 @@
+# Core AI agent framework
+vision-agents[getstream,gemini]>=0.3.8
+
+# Environment variables
+python-dotenv>=1.0.0
+
+# WebSocket server (agent ↔ overlay/dashboard communication)
+websockets>=13.0
+
+# Transparent overlay GUI
+PyQt5>=5.15
+
+# Image processing (used for frame resizing)
+Pillow>=10.0

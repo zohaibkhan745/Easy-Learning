@@ -1,0 +1,24 @@
+# Virtual environment
+venv/
+
+# Environment variables
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+
+# Temp inspection files
+inspect_api*.py
+api_output*.txt
+filepath.txt
+
+# Debug frame captures
+debug_frames/

@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Easy Learning — AI Tutor Dashboard</title>
+    <style>
+      :root {
+        --bg: #0d1117;
+        --surface: #161b22;
+        --border: #30363d;
+        --text: #e6edf3;
+        --text-dim: #8b949e;
+        --accent: #58a6ff;
+        --green: #3fb950;
+        --red: #f85149;
+        --orange: #d29922;
+        --radius: 10px;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family:
+          "Segoe UI",
+          -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ── Header ── */
+      header {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 16px 24px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      header h1 {
+        font-size: 20px;
+        font-weight: 600;
+        flex: 1;
+      }
+      header h1 span {
+        color: var(--accent);
+      }
+
+      .status-badge {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        padding: 5px 12px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border);
+      }
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--red);
+        animation: pulse 2s infinite;
+      }
+      .status-dot.connected {
+        background: var(--green);
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      /* ── Main layout ── */
+      main {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        grid-template-rows: auto 1fr;
+        gap: 16px;
+        padding: 16px 24px;
+        max-height: calc(100vh - 65px);
+      }
+
+      /* ── Cards ── */
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+      .card-header {
+        padding: 12px 16px;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-dim);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .card-body {
+        padding: 16px;
+      }
+
+      /* ── Instructions card ── */
+      .instructions {
+        grid-column: 1 / -1;
+      }
+      .step-list {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        list-style: none;
+      }
+      .step-list li {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        background: rgba(88, 166, 255, 0.06);
+        border: 1px solid rgba(88, 166, 255, 0.15);
+        padding: 8px 14px;
+        border-radius: 8px;
+      }
+      .step-num {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: var(--bg);
+        font-size: 12px;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+
+      /* ── Screen map ── */
+      .screen-map-card {
+        grid-row: 2;
+        display: flex;
+        flex-direction: column;
+      }
+      .screen-map-wrap {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        min-height: 200px;
+      }
+      .screen-map {
+        position: relative;
+        background: #1a1f26;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        width: 100%;
+        aspect-ratio: 16/9;
+        overflow: hidden;
+      }
+      .screen-map .dot {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        background: var(--red);
+        border: 2px solid rgba(255, 255, 255, 0.7);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        animation: dot-pop 0.3s ease-out;
+        z-index: 2;
+      }
+      .screen-map .dot-label {
+        position: absolute;
+        transform: translateX(-50%);
+        font-size: 10px;
+        color: #fff;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 1px 6px;
+        border-radius: 3px;
+        white-space: nowrap;
+        z-index: 3;
+        pointer-events: none;
+      }
+      .screen-map .grid-line {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      @keyframes dot-pop {
+        0% {
+          transform: translate(-50%, -50%) scale(0);
+        }
+        50% {
+          transform: translate(-50%, -50%) scale(1.5);
+        }
+        100% {
+          transform: translate(-50%, -50%) scale(1);
+        }
+      }
+
+      /* ── Activity log ── */
+      .log-card {
+        grid-row: 2;
+        display: flex;
+        flex-direction: column;
+      }
+      .log-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 8px 16px;
+        max-height: calc(100vh - 250px);
+      }
+      .log-entry {
+        display: flex;
+        gap: 10px;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        font-size: 13px;
+        animation: slide-in 0.2s ease-out;
+      }
+      .log-entry:last-child {
+        border-bottom: none;
+      }
+      .log-time {
+        color: var(--text-dim);
+        font-family: "Cascadia Code", "Consolas", monospace;
+        font-size: 11px;
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+      .log-detail {
+        flex: 1;
+      }
+      .log-name {
+        font-weight: 600;
+        color: var(--accent);
+      }
+      .log-coords {
+        color: var(--text-dim);
+        font-family: "Cascadia Code", "Consolas", monospace;
+        font-size: 12px;
+      }
+      .log-empty {
+        color: var(--text-dim);
+        text-align: center;
+        padding: 40px 0;
+        font-size: 14px;
+      }
+
+      @keyframes slide-in {
+        from {
+          opacity: 0;
+          transform: translateY(-8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* ── Scrollbar ── */
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--text-dim);
+      }
+
+      /* ── Stats row ── */
+      .stats {
+        display: flex;
+        gap: 8px;
+        padding: 10px 16px;
+        border-top: 1px solid var(--border);
+        font-size: 12px;
+        color: var(--text-dim);
+      }
+      .stat {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .stat strong {
+        color: var(--text);
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- ══ Header ══ -->
+    <header>
+      <h1>Easy <span>Learning</span> — AI Tutor</h1>
+      <div class="status-badge">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusText">Connecting…</span>
+      </div>
+    </header>
+
+    <!-- ══ Main ══ -->
+    <main>
+      <!-- Instructions -->
+      <div class="card instructions">
+        <div class="card-body">
+          <ol class="step-list">
+            <li>
+              <span class="step-num">1</span> Run
+              <code>python agent.py run</code>
+            </li>
+            <li><span class="step-num">2</span> Open demo URL in browser</li>
+            <li>
+              <span class="step-num">3</span> Click <b>Share Screen</b> → Entire
+              Screen
+            </li>
+            <li>
+              <span class="step-num">4</span> Run <code>python overlay.py</code>
+            </li>
+            <li><span class="step-num">5</span> Talk to the AI tutor!</li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- Screen mini-map -->
+      <div class="card screen-map-card">
+        <div class="card-header">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+            <path
+              d="M2 3.5A1.5 1.5 0 013.5 2h9A1.5 1.5 0 0114 3.5v7a1.5 1.5 0 01-1.5 1.5H10v1h1.5a.5.5 0 010 1h-7a.5.5 0 010-1H6v-1H3.5A1.5 1.5 0 012 10.5v-7zM3.5 3a.5.5 0 00-.5.5v7a.5.5 0 00.5.5h9a.5.5 0 00.5-.5v-7a.5.5 0 00-.5-.5h-9zM7 12v1h2v-1H7z"
+            />
+          </svg>
+          Screen Map
+        </div>
+        <div class="screen-map-wrap">
+          <div class="screen-map" id="screenMap"></div>
+        </div>
+        <div class="stats">
+          <div class="stat">Screen: <strong id="screenRes">—</strong></div>
+          <div class="stat">
+            Highlights: <strong id="highlightCount">0</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity log -->
+      <div class="card log-card">
+        <div class="card-header">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+            <path
+              d="M8 3.5a.5.5 0 00-1 0V9a.5.5 0 00.252.434l3.5 2a.5.5 0 00.496-.868L8 8.71V3.5z"
+            />
+            <path
+              d="M8 16A8 8 0 108 0a8 8 0 000 16zm7-8A7 7 0 111 8a7 7 0 0114 0z"
+            />
+          </svg>
+          Activity Log
+        </div>
+        <div class="log-body" id="logBody">
+          <div class="log-empty" id="logEmpty">
+            Waiting for highlight events…<br />
+            <small>Connect the agent and start talking</small>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      // ── Config ──
+      const WS_URL = "ws://localhost:8765";
+      const SCREEN_W = 1920; // updated when we get status
+      const SCREEN_H = 1080;
+
+      let ws = null;
+      let reconnectTimer = null;
+      let highlightCount = 0;
+      let currentScreenW = SCREEN_W;
+      let currentScreenH = SCREEN_H;
+
+      // ── DOM refs ──
+      const statusDot = document.getElementById("statusDot");
+      const statusText = document.getElementById("statusText");
+      const screenMap = document.getElementById("screenMap");
+      const logBody = document.getElementById("logBody");
+      const logEmpty = document.getElementById("logEmpty");
+      const screenRes = document.getElementById("screenRes");
+      const highlightCountEl = document.getElementById("highlightCount");
+
+      // ── Draw grid lines on the mini-map ──
+      function drawGridLines() {
+        screenMap.querySelectorAll(".grid-line").forEach((el) => el.remove());
+        const rect = screenMap.getBoundingClientRect();
+        const spacing = 200;
+
+        // Vertical lines
+        for (let x = spacing; x < currentScreenW; x += spacing) {
+          const line = document.createElement("div");
+          line.className = "grid-line";
+          line.style.left = (x / currentScreenW) * 100 + "%";
+          line.style.top = "0";
+          line.style.width = "1px";
+          line.style.height = "100%";
+          screenMap.appendChild(line);
+        }
+        // Horizontal lines
+        for (let y = spacing; y < currentScreenH; y += spacing) {
+          const line = document.createElement("div");
+          line.className = "grid-line";
+          line.style.top = (y / currentScreenH) * 100 + "%";
+          line.style.left = "0";
+          line.style.height = "1px";
+          line.style.width = "100%";
+          screenMap.appendChild(line);
+        }
+      }
+
+      // ── Add a dot to the screen map ──
+      function addMapDot(x, y, label) {
+        const pctX = (x / currentScreenW) * 100;
+        const pctY = (y / currentScreenH) * 100;
+
+        const dot = document.createElement("div");
+        dot.className = "dot";
+        dot.style.left = pctX + "%";
+        dot.style.top = pctY + "%";
+        screenMap.appendChild(dot);
+
+        if (label) {
+          const lbl = document.createElement("div");
+          lbl.className = "dot-label";
+          lbl.textContent = label;
+          lbl.style.left = pctX + "%";
+          lbl.style.top = Math.min(pctY + 5, 95) + "%";
+          screenMap.appendChild(lbl);
+        }
+
+        // Remove after 6 seconds
+        setTimeout(() => {
+          dot.remove();
+          if (label) {
+            const labels = screenMap.querySelectorAll(".dot-label");
+            labels.forEach((l) => {
+              if (l.textContent === label) l.remove();
+            });
+          }
+        }, 6000);
+      }
+
+      // ── Add entry to activity log ──
+      function addLogEntry(data) {
+        if (logEmpty) logEmpty.remove();
+
+        const entry = document.createElement("div");
+        entry.className = "log-entry";
+
+        const now = new Date();
+        const time = now.toLocaleTimeString("en-US", { hour12: false });
+
+        entry.innerHTML = `
+    <span class="log-time">${time}</span>
+    <div class="log-detail">
+      <span class="log-name">${escapeHtml(data.label || "highlight")}</span>
+      <span class="log-coords">(${data.x}, ${data.y})</span>
+    </div>
+  `;
+
+        logBody.prepend(entry);
+
+        // Keep max 100 entries
+        while (logBody.children.length > 100) {
+          logBody.lastChild.remove();
+        }
+      }
+
+      function escapeHtml(str) {
+        const div = document.createElement("div");
+        div.textContent = str;
+        return div.innerHTML;
+      }
+
+      // ── WebSocket connection ──
+      function connect() {
+        if (
+          ws &&
+          (ws.readyState === WebSocket.CONNECTING ||
+            ws.readyState === WebSocket.OPEN)
+        )
+          return;
+
+        statusText.textContent = "Connecting…";
+        statusDot.classList.remove("connected");
+
+        try {
+          ws = new WebSocket(WS_URL);
+        } catch (e) {
+          scheduleReconnect();
+          return;
+        }
+
+        ws.onopen = () => {
+          statusText.textContent = "Connected";
+          statusDot.classList.add("connected");
+          // Request status
+          ws.send(JSON.stringify({ action: "status" }));
+        };
+
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+
+            if (data.action === "status") {
+              if (data.screen) {
+                screenRes.textContent = data.screen;
+                const parts = data.screen.split("x");
+                if (parts.length === 2) {
+                  currentScreenW = parseInt(parts[0]) || SCREEN_W;
+                  currentScreenH = parseInt(parts[1]) || SCREEN_H;
+                  drawGridLines();
+                }
+              }
+              highlightCountEl.textContent = data.highlights || 0;
+              return;
+            }
+
+            if (data.action === "draw") {
+              highlightCount++;
+              highlightCountEl.textContent = highlightCount;
+              addMapDot(data.x, data.y, data.label);
+              addLogEntry(data);
+            }
+          } catch (e) {
+            console.error("Failed to parse WS message:", e);
+          }
+        };
+
+        ws.onclose = () => {
+          statusText.textContent = "Disconnected";
+          statusDot.classList.remove("connected");
+          scheduleReconnect();
+        };
+
+        ws.onerror = () => {
+          statusText.textContent = "Connection error";
+          statusDot.classList.remove("connected");
+        };
+      }
+
+      function scheduleReconnect() {
+        if (reconnectTimer) return;
+        reconnectTimer = setTimeout(() => {
+          reconnectTimer = null;
+          connect();
+        }, 2000);
+      }
+
+      // ── Init ──
+      drawGridLines();
+      connect();
+
+      // Periodically request status
+      setInterval(() => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ action: "status" }));
+        }
+      }, 5000);
+    </script>
+  </body>
+</html>
