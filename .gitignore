@@ -15,10 +15,7 @@ build/
 .vscode/
 .idea/
 
-# Temp inspection files
-inspect_api*.py
-api_output*.txt
-filepath.txt
-
-# Debug frame captures
+# Debug artifacts
 debug_frames/
+calibration_test.py
+check_connection.py
